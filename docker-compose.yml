@@ -1,0 +1,48 @@
+version: '3.9'
+
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: word_to_latex
+      POSTGRES_USER: word_to_latex
+      POSTGRES_PASSWORD: word_to_latex
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+
+  backend:
+    build:
+      context: ./backend
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - latex
+    ports:
+      - '8000:8000'
+
+  frontend:
+    build:
+      context: ./frontend
+    env_file:
+      - .env
+    depends_on:
+      - backend
+    ports:
+      - '3000:3000'
+
+  latex:
+    build:
+      context: ./latex
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1024M
+
+volumes:
+  postgres_data:
